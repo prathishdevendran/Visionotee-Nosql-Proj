@@ -26,3 +26,9 @@ npm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Database Files
+*.db
+*.sqlite
+*.sqlite3
+

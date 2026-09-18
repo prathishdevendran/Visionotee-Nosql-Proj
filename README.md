@@ -1,6 +1,6 @@
 # Visionote 📝
 
-Visionote is a modern sticky notes platform built with a **FastAPI** backend, **MongoDB** database, and a **React (Vite) + Tailwind CSS** frontend.
+Visionote is a modern sticky notes platform built with a **FastAPI** backend, **MongoDB Atlas** database, and a **React (Vite) + Tailwind CSS** frontend.
 
 ---
 
@@ -9,7 +9,7 @@ Visionote is a modern sticky notes platform built with a **FastAPI** backend, **
 Ensure you have the following installed on your machine:
 - [Node.js](https://nodejs.org/) (version 18 or higher)
 - [Python](https://www.python.org/) (version 3.10 or higher)
-- [MongoDB Community Server](https://www.mongodb.com/try/download/community) (running locally on port `27017` or a MongoDB Atlas URI)
+- MongoDB Atlas account (or MongoDB instance)
 
 ---
 
@@ -81,8 +81,8 @@ Default configuration files are already set up for localhost:
 
 ### Backend (`backend/.env`)
 ```env
-MONGODB_URL=mongodb://localhost:27017
-DATABASE_NAME=visionote
+MONGODB_URL=mongodb+srv://visionotee_db_user:<db_password>@visionote.f78fhql.mongodb.net/?retryWrites=true&w=majority
+DATABASE_NAME=visionote-db
 ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173
 ```
 

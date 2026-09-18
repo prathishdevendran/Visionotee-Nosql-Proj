@@ -26,7 +26,7 @@ function LandingPage({ isSignIn, landingStyle, navigate }) {
                     ...landingStyle,
                     transform: isSignIn ? 'translate3d(-100vw, 0, 0)' : 'translate3d(0, 0, 0)',
                 }}
-                className="min-h-screen transition-transform duration-700 ease-in-out"
+                className="min-h-screen transition-transform duration-700 ease-in-out relative"
             >
                 <Navbar onGetStarted={() => navigate('/signin')} />
                 <main>

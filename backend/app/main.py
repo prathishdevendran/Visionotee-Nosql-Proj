@@ -1,58 +1,79 @@
 """
 Main Application Entry Point.
 
-Initializes the FastAPI application instance, configures Cross-Origin
-Resource Sharing (CORS) policies, registers API routers, and defines the root endpoint.
+Production-ready FastAPI application setup with lifespan events,
+CORS policies, centralized configuration, and modular API routers.
 """
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes.auth import router as auth_router
-from app.routes.notes import router as notes_router
-import os
-from dotenv import load_dotenv
-from pathlib import Path
+from app.core.config import settings
+from app.api import api_router
+from app.db.mongodb import db_manager
 
-# Load environment variables
-load_dotenv()
-if not os.getenv("ALLOWED_ORIGINS"):
-    for env_path in [Path(__file__).resolve().parent / ".env", Path(__file__).resolve().parent.parent / ".env"]:
-        if env_path.exists():
-            load_dotenv(dotenv_path=env_path)
-            break
 
-# Parse allowed CORS origins (default to localhost frontend ports if not specified)
-origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://localhost:8000")
-origins = [origin.strip().rstrip("/") for origin in origins_str.split(",") if origin.strip()]
-
-# Initialize the core FastAPI app
-app = FastAPI(
-    title="Visionote API",
-    description="Backend API for Visionote Sticky Notes Platform",
-    version="1.0.0"
-)
-
-# CORS middleware configuration: enables the React frontend application (running on
-# a separate port/origin) to successfully issue HTTP requests to this backend.
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows GET, POST, PUT, DELETE, OPTIONS, etc.
-    allow_headers=["*"],  # Allows all headers (e.g., Content-Type, Authorization)
-)
-
-# Attach routers representing authentication and notes CRUD categories
-app.include_router(auth_router)
-app.include_router(notes_router)
-
-@app.get("/")
-def read_root():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """
-    Service Root Endpoint.
-    Provides API welcome metadata and the interactive Swagger docs reference location.
+    Application lifespan context manager for startup and shutdown event hooks.
     """
-    return {
-        "message": "Welcome to Visionote API",
-        "docs": "/docs"
-    }
+    # Startup: Verify database connection
+    try:
+        db_manager.ping()
+        print(f"[{settings.PROJECT_NAME}] Successfully connected to MongoDB Atlas database: {settings.DATABASE_NAME}")
+    except Exception as e:
+        print(f"[{settings.PROJECT_NAME}] Warning: Database connection check failed on startup: {e}")
+    
+    yield
+    
+    # Shutdown: Cleanly close database connection pool
+    try:
+        db_manager.close()
+        print(f"[{settings.PROJECT_NAME}] Database connection pool closed.")
+    except Exception:
+        pass
+
+
+def create_application() -> FastAPI:
+    """
+    Application factory initializing FastAPI with middleware, routers, and configuration.
+    """
+    fastapi_app = FastAPI(
+        title=settings.PROJECT_NAME,
+        description="Production Backend API for Visionote Sticky Notes Platform",
+        version=settings.VERSION,
+        lifespan=lifespan
+    )
+
+    # CORS middleware configuration
+    fastapi_app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # Mount central API router
+    fastapi_app.include_router(api_router)
+
+    @fastapi_app.get("/", tags=["Health"])
+    def read_root():
+        """
+        Service Root Health & Documentation Discovery Endpoint.
+        """
+        return {
+            "status": "online",
+            "message": f"Welcome to {settings.PROJECT_NAME}",
+            "version": settings.VERSION,
+            "docs": "/docs"
+        }
+
+    return fastapi_app
+
+
+app = create_application()
+
+# Alias to support both 'uvicorn app.main:app' and 'uvicorn app.main:main'
+main = app

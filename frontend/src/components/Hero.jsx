@@ -84,7 +84,13 @@ export default function Hero() {
     };
 
     return (
-        <section ref={heroRef} id="home" className="relative flex flex-col justify-center items-center min-h-screen overflow-hidden px-6 pb-16 pt-24 " >
+        <section ref={heroRef} id="home" className="relative flex flex-col justify-center items-center min-h-screen overflow-hidden px-6 pb-16 pt-24" >
+            {/* Background paper-around decorative layer covering the entire Hero section */}
+            <div
+                className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-5"
+                style={{ backgroundImage: 'url("/paper-around.png")' }}
+            />
+
             {/* Embedded styles for CSS micro-animations */}
             <style>{`
                 /* Slow bouncing animation for the scroll indicator */
@@ -115,7 +121,7 @@ export default function Hero() {
                 }
             `}</style>
 
-            <div className="top-20 relative mx-auto max-w-5xl text-center flex-1 flex flex-col justify-center items-center">
+            <div className="top-20 relative z-10 mx-auto max-w-5xl text-center flex-1 flex flex-col justify-center items-center">
 
                 {/* Main Heading / Value Prop */}
                 <h1
@@ -123,7 +129,7 @@ export default function Hero() {
                     className="z-9 text-4xl font-bold tracking-tight text-[var(--text-color)] sm:text-5xl md:text-7xl"
                 >
                     <span className="block mb-1">Your thoughts, organized.</span>
-                    <span className="text-indigo-600 block">Searchable at the speed of thought.</span>
+                    <span className="text-[#1e1a4d] block">Searchable at the speed of thought.</span>
                 </h1>
 
                 {/* Subtitle */}
