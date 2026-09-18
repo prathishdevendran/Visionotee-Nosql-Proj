@@ -1,74 +1,100 @@
-PARTIALLY BUILT
+# Visionote 📝
 
-
-# Visionote Sticky Notes Platform
-
-Visionote is a modern sticky notes platform featuring a FastAPI backend powered by MongoDB and a React + Vite frontend styled with Tailwind CSS v4.
+Visionote is a modern sticky notes platform built with a **FastAPI** backend, **MongoDB** database, and a **React (Vite) + Tailwind CSS** frontend.
 
 ---
 
-## Repository Structure
+## 📌 Prerequisites
 
-*   `/backend` - FastAPI Python server
-*   `/frontend` - React SPA (Vite)
+Ensure you have the following installed on your machine:
+- [Node.js](https://nodejs.org/) (version 18 or higher)
+- [Python](https://www.python.org/) (version 3.10 or higher)
+- [MongoDB Community Server](https://www.mongodb.com/try/download/community) (running locally on port `27017` or a MongoDB Atlas URI)
 
 ---
 
-## 🛠️ Build and Start Commands
+## 🚀 Getting Started (Step-by-Step)
 
-### Frontend
-Run these commands inside the `/frontend` directory:
+Follow these steps to set up and run Visionote on your local machine:
+
+### 1. Backend Setup
+
+Open your terminal and run the following commands:
+
 ```bash
-# Install dependencies
-npm install
+# 1. Navigate to the backend directory
+cd backend
 
-# Build static assets (Production)
-npm run build
-
-# Start dev server
-npm run dev
-```
-
-### Backend
-Run these commands inside the `/backend` directory:
-```bash
-# Setup virtual environment (Windows)
+# 2. Create a virtual environment (if not already created)
+# On Windows:
 python -m venv vnote-env
 .\vnote-env\Scripts\Activate.ps1
 
-# Setup virtual environment (macOS/Linux)
+# On macOS/Linux:
 python3 -m venv vnote-env
 source vnote-env/bin/activate
 
-# Install dependencies
+# 3. Install required Python packages
 pip install -r requirements.txt
 
-# Start backend dev server
-uvicorn app.main:app --reload
+# 4. (Optional) Set up your .env file
+# A default .env is provided, or copy from template:
+# cp .env.example .env
 
-# Start backend production server
-uvicorn app.main:app --host 0.0.0.0 --port 8000
+# 5. Start the FastAPI backend server
+uvicorn app.main:app --reload --port 8000
+```
+
+> **Backend is running at:**
+> - API Base URL: `http://localhost:8000`
+> - Interactive API Docs (Swagger UI): `http://localhost:8000/docs`
+
+---
+
+### 2. Frontend Setup
+
+Open a **new terminal window** and run the following commands:
+
+```bash
+# 1. Navigate to the frontend directory
+cd frontend
+
+# 2. Install dependencies
+npm install
+
+# 3. (Optional) Set up your .env file
+# A default .env is provided, or copy from template:
+# cp .env.example .env
+
+# 4. Start the Vite development server
+npm run dev
+```
+
+> **Frontend is running at:**
+> - Web Application: `http://localhost:5173`
+
+---
+
+## ⚙️ Environment Configuration
+
+Default configuration files are already set up for localhost:
+
+### Backend (`backend/.env`)
+```env
+MONGODB_URL=mongodb://localhost:27017
+DATABASE_NAME=visionote
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173
+```
+
+### Frontend (`frontend/.env`)
+```env
+VITE_API_URL=http://localhost:8000
 ```
 
 ---
 
-## 🔑 Environment Variables
+## 📖 How to Use
 
-### Frontend (`/frontend/.env`)
-Create a `.env` file inside the `frontend` folder containing:
-*   `VITE_API_URL` (e.g., `http://localhost:8000` or the live backend endpoint)
-
-### Backend (`/backend/app/.env`)
-Create a `.env` file inside `backend/app` containing:
-*   `MONGODB_URL` (MongoDB cluster connection URI)
-*   `DATABASE_NAME` (e.g., `visionate`)
-*   `ALLOWED_ORIGINS` (comma-separated origins, e.g., `http://localhost:5173,https://visionote.vercel.app`)
-
----
-
-## 🚀 Deployment
-
-Refer to the detailed deployment documentation or config files:
-*   [Vercel Configuration](frontend/vercel.json) (Frontend SPA routing rewrite setup)
-*   [Backend Environment Template](backend/app/.env.example)
-*   [Frontend Environment Template](frontend/.env.example)
+1. Open `http://localhost:5173` in your browser.
+2. Click **Get Started** / **Sign In** to create an account (or log in).
+3. Open your **Workspace** to create, color-code, pin, edit, and organize sticky notes.

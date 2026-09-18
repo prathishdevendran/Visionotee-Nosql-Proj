@@ -16,12 +16,13 @@ from pathlib import Path
 # Load environment variables
 load_dotenv()
 if not os.getenv("ALLOWED_ORIGINS"):
-    app_env = Path(__file__).parent / ".env"
-    if app_env.exists():
-        load_dotenv(dotenv_path=app_env)
+    for env_path in [Path(__file__).resolve().parent / ".env", Path(__file__).resolve().parent.parent / ".env"]:
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path)
+            break
 
-# Parse allowed CORS origins
-origins_str = os.getenv("ALLOWED_ORIGINS", "*")
+# Parse allowed CORS origins (default to localhost frontend ports if not specified)
+origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://localhost:8000")
 origins = [origin.strip().rstrip("/") for origin in origins_str.split(",") if origin.strip()]
 
 # Initialize the core FastAPI app

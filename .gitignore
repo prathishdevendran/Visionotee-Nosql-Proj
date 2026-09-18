@@ -1,0 +1,28 @@
+# Environment Files
+.env
+.env.local
+.env.*.local
+*.env
+
+# Dependencies & Environments
+node_modules/
+vnote-env/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Build outputs
+dist/
+dist-ssr/
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS & Editor Files
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/

@@ -1,14 +1,5 @@
-const rawApiUrl = import.meta.env.VITE_API_URL;
-const BASE_URL = rawApiUrl ? rawApiUrl.replace(/\/+$/, "") : "";
-
-if (!rawApiUrl) {
-    console.error(
-        "CRITICAL: VITE_API_URL environment variable is not defined! " +
-        "API calls will fall back to relative paths, which routes them to Vercel's static file server " +
-        "and causes a '405 Method Not Allowed' error. " +
-        "Please add VITE_API_URL (e.g., https://your-backend.up.railway.app) in your Vercel Project Settings."
-    );
-}
+const rawApiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const BASE_URL = rawApiUrl.replace(/\/+$/, "");
 
 async function handleResponse(response) {
     if (!response.ok) {

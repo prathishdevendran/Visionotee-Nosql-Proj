@@ -10,19 +10,17 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Try loading the default .env from the working directory
+# Load .env from backend directory or current directory
 load_dotenv()
+if not os.getenv("MONGODB_URL"):
+    for env_path in [Path(__file__).resolve().parent / ".env", Path(__file__).resolve().parent.parent / ".env"]:
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path)
+            break
 
-# Fallback: Locate and load the app/.env file if the environment variables 
-# were not resolved (e.g., when launching the app from different working directories).
-if not os.getenv("DATABASE_NAME"):
-    app_env = Path(__file__).parent / ".env"
-    if app_env.exists():
-        load_dotenv(dotenv_path=app_env)
-
-# Retrieve MongoDB connection credentials and settings
-MONGODB_URL = os.getenv("MONGODB_URL")
-DATABASE_NAME = os.getenv("DATABASE_NAME")
+# Retrieve MongoDB connection credentials and settings with localhost defaults
+MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+DATABASE_NAME = os.getenv("DATABASE_NAME", "visionote")
 
 # Establish connection with the MongoDB server instance
 client = MongoClient(MONGODB_URL)
