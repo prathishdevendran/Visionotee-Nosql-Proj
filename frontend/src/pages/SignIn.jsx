@@ -118,19 +118,21 @@ export default function SignIn({ onBack }) {
 
                     {/* Header Branding */}
                     <div className="flex flex-col items-center text-center">
-                        <div className="flex items-center gap-2 mb-4">
+                        <div className="flex items-center gap-2 mb-3">
                             <img
                                 src="/visionate logo.png"
-                                alt="Visionate Logo"
-                                className="h-10 w-auto object-contain"
+                                alt="Visionote Logo"
+                                className="h-9 w-auto object-contain drop-shadow-xs"
                             />
-                            <span className="text-xl tracking-tight text-zinc-900">Visionate</span>
+                            <span className="text-2xl font-bold tracking-tight text-zinc-900" style={{ fontFamily: "var(--font-brand)" }}>
+                                Visionote
+                            </span>
                         </div>
 
-                        <h2 className="text-2xl tracking-tight text-zinc-900">
+                        <h2 className="text-2xl font-bold tracking-tight text-zinc-900">
                             {isRegister ? 'Create an account' : 'Welcome back'}
                         </h2>
-                        <p className="mt-2 text-sm text-zinc-500">
+                        <p className="mt-1.5 text-sm text-zinc-500 font-normal">
                             {isRegister
                                 ? 'Start organizing your thoughts today.'
                                 : 'Sign in to access your secure workspace.'}

@@ -69,7 +69,7 @@ export default function StickyNote({
 
     return (
         <div
-            className={`group relative flex flex-col justify-between p-6 transition-all duration-300 rounded-none aspect-square ${theme.text} ${isInteractive ? 'hover:-translate-y-2' : ''
+            className={`group relative flex flex-col justify-between p-5 sm:p-6 transition-all duration-300 rounded-sm shadow-md shadow-black/5 hover:shadow-xl hover:shadow-black/10 border border-black/5 aspect-square ${theme.text} ${isInteractive ? 'hover:-translate-y-1.5' : ''
                 } ${className}`}
             style={{
                 backgroundColor: theme.bg
@@ -77,49 +77,48 @@ export default function StickyNote({
         >
 
             {/* Top Header Bar */}
-            <div className="relative z-10 flex items-start justify-between gap-3 min-h-[2.5rem]">
-                <h3 className="text-2xl tracking-tight line-clamp-2 leading-relaxed text-black font-handwriting">
+            <div className="relative z-10 flex items-start justify-between gap-2.5 min-h-[2.25rem]">
+                <h3 className="text-xl sm:text-2xl font-bold tracking-tight line-clamp-2 leading-tight text-zinc-950 font-handwriting">
                     {title}
                 </h3>
 
                 {/* Status Badges & Pin */}
-                <div className="flex items-center gap-1.5 shrink-0">
-
+                <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
                     {isPinned && (
                         <button
                             type="button"
                             disabled={!isInteractive}
                             onClick={isInteractive ? onPin : undefined}
-                            className={`p-1 transition ${isInteractive ? 'hover:bg-black/10 cursor-pointer' : 'cursor-default'
+                            className={`p-1 transition rounded ${isInteractive ? 'hover:bg-black/10 cursor-pointer' : 'cursor-default'
                                 }`}
                             title="Pinned Note"
                         >
-                            <Pin className="h-4 w-4 fill-black text-black rotate-45" />
+                            <Pin className="h-4 w-4 fill-red-500 text-red-600 drop-shadow-xs rotate-45" />
                         </button>
                     )}
                 </div>
             </div>
 
             {/* Note Content Body */}
-            <p className="relative z-10 mt-3 text-lg leading-normal text-black/80 line-clamp-5 font-handwriting flex-1">
+            <p className="relative z-10 mt-2.5 text-base sm:text-lg leading-snug text-zinc-900/85 line-clamp-5 font-handwriting flex-1">
                 {content}
             </p>
 
             {/* Footer Area: Tags & Action Controls */}
-            <div className="relative z-10 mt-5 pt-3 border-t border-black/10 flex items-center justify-between gap-2 text-xs">
+            <div className="relative z-10 mt-4 pt-2.5 border-t border-black/10 flex items-center justify-between gap-2 text-xs">
                 {/* Tags List */}
-                <div className="flex flex-wrap gap-1.5 items-center">
+                <div className="flex flex-wrap gap-1.5 items-center overflow-hidden">
                     {tags.map((tag, idx) => (
                         <span
                             key={idx}
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border ${theme.tag}`}
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold border ${theme.tag}`}
                         >
                             <Tag className="h-2.5 w-2.5 opacity-70" />
                             {tag}
                         </span>
                     ))}
                     {updatedAt && (
-                        <span className="text-[11px] opacity-60 ml-1 font-mono">
+                        <span className="text-[10px] opacity-60 ml-0.5 font-mono">
                             {updatedAt}
                         </span>
                     )}

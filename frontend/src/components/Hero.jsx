@@ -46,45 +46,15 @@ export default function Hero() {
 
     /**
      * Programmatically performs a smooth scroll transition down to the product showcase.
-     * Uses quadratic easing animation frames to prevent standard jumpy browser scrolls.
      */
     const handleScrollDown = () => {
         const subHero = document.getElementById('sub-hero');
         if (!subHero) return;
-
-        // Calculate absolute destination height coordinates
-        const targetY = subHero.getBoundingClientRect().top + window.pageYOffset;
-        const startY = window.pageYOffset || document.documentElement.scrollTop;
-        const difference = targetY - startY;
-        const duration = 1000; // Animation window duration in ms
-        let startTime = null;
-
-        // Quadratic ease-in-out formula
-        const easeInOutQuad = (t, b, c, d) => {
-            t /= d / 2;
-            if (t < 1) return c / 2 * t * t + b;
-            t--;
-            return -c / 2 * (t * (t - 2) - 1) + b;
-        };
-
-        // requestAnimationFrame animation handler loop
-        const animateScroll = (currentTime) => {
-            if (startTime === null) startTime = currentTime;
-            const timeElapsed = currentTime - startTime;
-            const run = easeInOutQuad(timeElapsed, startY, difference, duration);
-
-            window.scrollTo(0, run);
-
-            if (timeElapsed < duration) {
-                requestAnimationFrame(animateScroll);
-            }
-        };
-
-        requestAnimationFrame(animateScroll);
+        subHero.scrollIntoView({ behavior: 'smooth' });
     };
 
     return (
-        <section ref={heroRef} id="home" className="relative flex flex-col justify-center items-center min-h-screen overflow-hidden px-6 pb-16 pt-24" >
+        <section ref={heroRef} id="home" className="relative flex flex-col justify-center items-center h-[calc(100vh-3.5rem)] min-h-[560px] max-h-[850px] overflow-hidden px-4 pt-14 pb-4" >
             {/* Background paper-around decorative layer covering the entire Hero section */}
             <div
                 className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-5"
@@ -96,7 +66,7 @@ export default function Hero() {
                 /* Slow bouncing animation for the scroll indicator */
                 @keyframes slow-bounce {
                     0%, 100% {
-                        transform: translateY(-10px);
+                        transform: translateY(-8px);
                         animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
                     }
                     50% {
@@ -121,53 +91,70 @@ export default function Hero() {
                 }
             `}</style>
 
-            <div className="top-20 relative z-10 mx-auto max-w-5xl text-center flex-1 flex flex-col justify-center items-center">
+            <div className="relative z-10 mx-auto max-w-4xl text-center flex-1 flex flex-col justify-center items-center py-2 sm:py-4">
+
+                {/* Pill Badge */}
+                <div 
+                    style={scrollStyle}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-black/10 bg-white/75 shadow-xs text-[11px] font-semibold text-zinc-700 mb-3.5 backdrop-blur-sm tracking-wide uppercase font-mono"
+                >
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span>Visual Sticky Notes &bull; Instant Recall</span>
+                </div>
 
                 {/* Main Heading / Value Prop */}
                 <h1
-                    style={{ ...scrollStyle, fontFamily: "'Great Vibes', cursive" }}
-                    className="z-9 text-4xl font-bold tracking-tight text-[var(--text-color)] sm:text-5xl md:text-7xl"
+                    style={scrollStyle}
+                    className="relative z-20 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15]"
                 >
-                    <span className="block mb-1">Your thoughts, organized.</span>
-                    <span className="text-[#1e1a4d] block">Searchable at the speed of thought.</span>
+                    <span className="block text-zinc-900">Your thoughts, organized.</span>
+                    <span className="block mt-2 text-indigo-700">
+                        Searchable at the speed of thought.
+                    </span>
                 </h1>
 
                 {/* Subtitle */}
                 <p
-                    style={{ ...scrollStyle, fontFamily: "'Great Vibes', cursive" }}
-                    className="mx-auto mt-10 font-bold max-w-2xl text-base text-[var(--text-muted)] sm:text-4xl"
+                    style={scrollStyle}
+                    className="relative z-20 mx-auto mt-3 max-w-xl text-sm sm:text-base md:text-lg text-zinc-600 font-medium leading-relaxed"
                 >
-                    A modern sticky-notes platform
+                    A tactile, modern sticky-notes workspace for thinkers, creators, and doers.
                 </p>
 
-                {/* Logo & Loading Arch Container */}
+                {/* Logo & Interactive Arch Container */}
                 <div
                     style={logoScrollStyle}
-                    className='relative top-15 flex items-center justify-center w-[200px] h-[400px] -mt-25 mb-8'
+                    className="relative z-10 mt-6 flex flex-col items-center justify-center"
                 >
-                    {/* Rotating background arch graphic */}
-                    <img
-                        src='/paper.png'
-                        alt="Sticky Arch"
-                        className="absolute inset-0 w-full h-full object-contain animate-spin-slow"
-                    />
-                    {/* Bouncing scroll indicator button carrying logo */}
-                    <button
-                        type="button"
-                        onClick={handleScrollDown}
-                        className="z-10 flex items-center justify-center rounded-full transition-all duration-300 animate-slow-bounce cursor-pointer"
-                        aria-label="Scroll Down"
-                    >
-                        {/* Smaller Brand Logo Centered */}
+                    <div className="relative flex items-center justify-center w-36 h-36 sm:w-44 sm:h-44">
+                        {/* Rotating background arch graphic */}
                         <img
-                            src="/visionate logo.png"
-                            alt="visionate logo"
-                            className='relative h-[150px] w-auto object-contain'
+                            src="/paper.png"
+                            alt="Sticky Arch"
+                            className="absolute inset-0 w-full h-full object-contain animate-spin-slow opacity-80 pointer-events-none"
                         />
-                    </button>
+                        {/* Bouncing scroll indicator button carrying logo */}
+                        <button
+                            type="button"
+                            onClick={handleScrollDown}
+                            className="z-10 flex items-center justify-center rounded-full transition-all duration-300 animate-slow-bounce cursor-pointer hover:scale-105 active:scale-95"
+                            aria-label="Scroll Down to Explore"
+                        >
+                            {/* Brand Logo Centered */}
+                            <img
+                                src="/visionate logo.png"
+                                alt="Visionote Logo"
+                                className="h-18 sm:h-22 w-auto object-contain drop-shadow-md"
+                            />
+                        </button>
+                    </div>
+
+                    <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase mt-1 select-none">
+                        scroll or click to explore
+                    </span>
                 </div>
 
             </div>
-        </section >
+        </section>
     );
 }

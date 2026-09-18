@@ -132,23 +132,6 @@ export default function App() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, [isLandingRoute]);
 
-    // Scale manual wheel scrolling speed by 0.8 on the landing page
-    useEffect(() => {
-        if (!isLandingRoute || location.pathname !== '/') return;
-
-        const handleWheel = (e) => {
-            if (e.ctrlKey) return;
-            e.preventDefault();
-            window.scrollBy(e.deltaX * 0.8, e.deltaY * 0.4);
-        };
-
-        window.addEventListener('wheel', handleWheel, { passive: false });
-
-        return () => {
-            window.removeEventListener('wheel', handleWheel);
-        };
-    }, [isLandingRoute, location.pathname]);
-
     // Static landing styles using CSS Custom Property variables with native white fallbacks
     const landingStyle = {
         backgroundColor: 'var(--bg-color, rgb(255, 255, 255))',

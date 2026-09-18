@@ -25,6 +25,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"[{settings.PROJECT_NAME}] Warning: Database connection check failed on startup: {e}")
     
+    #ready to serve request
     yield
     
     # Shutdown: Cleanly close database connection pool
@@ -74,6 +75,3 @@ def create_application() -> FastAPI:
 
 
 app = create_application()
-
-# Alias to support both 'uvicorn app.main:app' and 'uvicorn app.main:main'
-main = app

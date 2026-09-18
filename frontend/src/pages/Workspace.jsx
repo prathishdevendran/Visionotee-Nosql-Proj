@@ -246,16 +246,17 @@ export default function Workspace({ onBack }) {
                         
                         {/* Trigger Note Creation Button */}
                         <button
+                            type="button"
                             onClick={openCreateModal}
-                            className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200/80 hover:border-indigo-500 hover:bg-white transition-all duration-300 aspect-square p-6 cursor-pointer bg-zinc-50/20 group rounded-none"
+                            className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 hover:border-indigo-500 hover:bg-white transition-all duration-300 aspect-square p-6 cursor-pointer bg-white/40 group rounded-sm shadow-sm hover:shadow-md"
                         >
-                            <div className="rounded-full bg-zinc-100 p-4 group-hover:bg-indigo-50 transition duration-300">
-                                <Plus className="h-8 w-8 text-zinc-500 group-hover:text-indigo-600 transition duration-300 group-hover:scale-110" />
+                            <div className="rounded-2xl bg-zinc-100 p-4 group-hover:bg-indigo-50 transition duration-300 shadow-xs">
+                                <Plus className="h-7 w-7 text-zinc-500 group-hover:text-indigo-600 transition duration-300 group-hover:scale-110" />
                             </div>
-                            <span className="mt-4 text-sm font-medium text-zinc-600 group-hover:text-indigo-600 transition">
+                            <span className="mt-4 text-sm font-semibold text-zinc-700 group-hover:text-indigo-600 transition">
                                 Add Sticky Note
                             </span>
-                            <span className="text-[11px] text-zinc-400 mt-1">Write down your ideas instantly</span>
+                            <span className="text-xs text-zinc-400 mt-1">Write down your ideas instantly</span>
                         </button>
 
                         {/* Interactive Notes Grid */}

@@ -17,24 +17,24 @@ export default function Navbar({ onGetStarted }) {
             <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
 
                 {/* Brand Logo & Name */}
-                <a href="#home" className="flex items-center gap-2.5 group cursor-pointer select-none">
+                <a href="#home" className="flex items-center gap-2 group cursor-pointer select-none">
                     <img
                         src="/visionate logo.png"
                         alt="Visionote Logo"
-                        className="w-8 h-8 object-contain rotate-[-2deg] group-hover:rotate-[4deg] group-hover:scale-105 active:scale-95 transition-all duration-200"
+                        className="w-8 h-8 object-contain rotate-[-2deg] group-hover:rotate-[4deg] group-hover:scale-105 active:scale-95 transition-transform duration-200 ease-out drop-shadow-xs will-change-transform"
                     />
-                    <span className="text-xl font-bold tracking-tight text-[var(--text-color)] font-handwriting">
+                    <span className="text-xl font-bold tracking-tight text-[var(--text-color)]" style={{ fontFamily: "var(--font-brand)" }}>
                         Visionote
                     </span>
                 </a>
 
                 {/* Navigation Links (Hidden on mobile viewports) */}
-                <nav className="hidden items-center gap-3 text-sm font-medium md:flex">
+                <nav className="hidden items-center gap-2.5 text-sm font-medium md:flex">
                     {/* Home Link: styled as a yellow sticky note */}
                     <a
                         href="#home"
                         style={{ backgroundColor: '#fef08a' }}
-                        className="relative flex items-center justify-center px-4 h-9 shadow-sm hover:rotate-[2deg] hover:scale-105 active:scale-95 transition-all duration-200 select-none text-amber-950 font-handwriting border border-black/5 rounded-sm"
+                        className="relative flex items-center justify-center px-4 h-9 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-[transform,box-shadow] duration-200 ease-out select-none text-amber-950 font-handwriting border border-black/5 rounded-sm will-change-transform"
                     >
                         <span className="text-base capitalize">Home</span>
                     </a>
@@ -43,7 +43,7 @@ export default function Navbar({ onGetStarted }) {
                     <a
                         href="#product"
                         style={{ backgroundColor: '#cffafe' }}
-                        className="relative flex items-center justify-center px-4 h-9 shadow-sm hover:rotate-[-2deg] hover:scale-105 active:scale-95 transition-all duration-200 select-none text-cyan-950 font-handwriting border border-black/5 rounded-sm"
+                        className="relative flex items-center justify-center px-4 h-9 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-[transform,box-shadow] duration-200 ease-out select-none text-cyan-950 font-handwriting border border-black/5 rounded-sm will-change-transform"
                     >
                         <span className="text-base capitalize">Product</span>
                     </a>
@@ -52,7 +52,7 @@ export default function Navbar({ onGetStarted }) {
                     <a
                         href="#about"
                         style={{ backgroundColor: '#bbf7d0' }}
-                        className="relative flex items-center justify-center px-4 h-9 shadow-sm hover:rotate-[1deg] hover:scale-105 active:scale-95 transition-all duration-200 select-none text-emerald-950 font-handwriting border border-black/5 rounded-sm"
+                        className="relative flex items-center justify-center px-4 h-9 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-[transform,box-shadow] duration-200 ease-out select-none text-emerald-950 font-handwriting border border-black/5 rounded-sm will-change-transform"
                     >
                         <span className="text-base capitalize">About</span>
                     </a>
@@ -61,7 +61,7 @@ export default function Navbar({ onGetStarted }) {
                     <a
                         href="#contact"
                         style={{ backgroundColor: '#fecdd3' }}
-                        className="relative flex items-center justify-center px-4 h-9 shadow-sm hover:rotate-[-2deg] hover:scale-105 active:scale-95 transition-all duration-200 select-none text-rose-950 font-handwriting border border-black/5 rounded-sm"
+                        className="relative flex items-center justify-center px-4 h-9 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-[transform,box-shadow] duration-200 ease-out select-none text-rose-950 font-handwriting border border-black/5 rounded-sm will-change-transform"
                     >
                         <span className="text-base capitalize">Contact</span>
                     </a>
@@ -73,9 +73,9 @@ export default function Navbar({ onGetStarted }) {
                         type="button"
                         onClick={onGetStarted}
                         style={{ backgroundColor: '#e0e7ff' }}
-                        className="relative flex items-center justify-center gap-1.5 px-3.5 h-9 shadow-sm hover:rotate-[2deg] hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer select-none text-indigo-950 font-handwriting border border-black/5 rounded-sm"
+                        className="relative flex items-center justify-center gap-1.5 px-3.5 h-9 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-[transform,box-shadow] duration-200 ease-out cursor-pointer select-none text-indigo-950 font-handwriting border border-black/5 rounded-sm will-change-transform"
                     >
-                        <Rocket className="h-3.5 w-3.5 fill-red-500 text-red-600 drop-shadow-sm rotate-35" />
+                        <Rocket className="h-3.5 w-3.5 fill-red-500 text-red-600 drop-shadow-xs rotate-35" />
                         <span className="text-base capitalize">Get Started</span>
                     </button>
                 </div>

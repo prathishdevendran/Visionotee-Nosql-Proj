@@ -3,36 +3,38 @@ import { Pin } from 'lucide-react';
 import StickyNote from './StickyNote';
 
 // 16 Predefined coordinate offsets (expressed in viewport vh/vw units) 
-// to display floating notes surrounding the center "Try Now" button.
+// symmetrically distributed across the viewport to frame the center "Try Now" button.
 const FIXED_POSITIONS = [
-    // Outer Border Row 1
-    { top: 8, left: 4 },
-    { top: 8, left: 81 },
-    // Outer Border Row 2
-    { top: 30, left: 3 },
-    { top: 30, left: 83 },
-    // Outer Border Row 3
-    { top: 52, left: 5 },
-    { top: 52, left: 80 },
-    // Outer Border Row 4
-    { top: 74, left: 4 },
-    { top: 74, left: 82 },
-    // Inner Rings Row 1
-    { top: 18, left: 20 },
-    { top: 18, left: 64 },
-    // Inner Rings Row 2
-    { top: 42, left: 19 },
-    { top: 42, left: 66 },
-    // Inner Rings Row 3
-    { top: 66, left: 21 },
-    { top: 66, left: 63 },
-    // Top-Bottom Center Alignments
-    { top: 60, left: 43 },
-    { top: 10, left: 43 },
+    // Far Left Column (safely inset with margin from screen edge)
+    { top: 7, left: 8 },
+    { top: 28, left: 7 },
+    { top: 50, left: 8 },
+    { top: 71, left: 7 },
+
+    // Mid Left Column
+    { top: 12, left: 24 },
+    { top: 34, left: 23 },
+    { top: 58, left: 24 },
+
+    // Far Right Column (matching right-hand margin)
+    { top: 7, left: 76 },
+    { top: 28, left: 77 },
+    { top: 50, left: 76 },
+    { top: 71, left: 77 },
+
+    // Mid Right Column
+    { top: 12, left: 60 },
+    { top: 34, left: 61 },
+    { top: 58, left: 60 },
+
+    // Center Top & Bottom Anchors
+    { top: 5, left: 42 },
+    { top: 70, left: 42 },
 ];
 
-// Content metadata list for the background notes showcasing platform features
+// Content metadata list with curated randomized color distribution
 const INITIAL_NOTES = [
+    // Far Left Column
     {
         title: "Security",
         content: "Zero-knowledge encryption ensures your data remains completely private.",
@@ -41,53 +43,59 @@ const INITIAL_NOTES = [
     {
         title: "Local-First",
         content: "Access your notes anytime, anywhere. Fully functional offline.",
-        color: "emerald"
+        color: "lime"
     },
     {
         title: "Semantic Search",
         content: "Search by meaning and concept, not just exact keywords.",
-        color: "yellow"
+        color: "purple"
     },
     {
         title: "Markdown Support",
         content: "Write cleanly using standard formatting you already know.",
-        color: "amber"
+        color: "orange"
     },
+
+    // Mid Left Column
     {
         title: "Custom Tags",
         content: "Organize note boards dynamically with custom categorized tags.",
-        color: "purple"
+        color: "rose"
     },
     {
         title: "Quick Sync",
         content: "Synchronize across devices with end-to-end encryption active.",
-        color: "cyan"
+        color: "blue"
     },
     {
         title: "Graph View",
         content: "Visualize how your thoughts link together in a network.",
-        color: "rose"
+        color: "emerald"
     },
+
+    // Far Right Column
     {
         title: "Dark Mode",
         content: "Sleek eye-friendly interface designed for late night sessions.",
-        color: "orange"
+        color: "indigo"
     },
     {
         title: "Export PDF",
         content: "Export note boards to beautifully formatted PDF documents.",
-        color: "blue"
+        color: "amber"
     },
     {
         title: "Keyboard Shortcuts",
         content: "Navigate and manage boards instantly without touch.",
-        color: "violet"
+        color: "purple"
     },
     {
         title: "Collaboration",
         content: "Securely share encrypted workspaces with trusted peers.",
-        color: "pink"
+        color: "rose"
     },
+
+    // Mid Right Column
     {
         title: "OCR Scanner",
         content: "Convert handwritten image uploads into editable text notes.",
@@ -96,22 +104,24 @@ const INITIAL_NOTES = [
     {
         title: "Audio Transcripts",
         content: "Record voice memos and generate automatic smart tags.",
-        color: "red"
+        color: "pink"
     },
     {
         title: "Daily Journal",
         content: "A dedicated space for reflective daily habits and logs.",
-        color: "amber"
+        color: "cyan"
     },
+
+    // Center Top & Bottom Anchors
     {
         title: "Key Note",
         content: "Ideas to Future",
-        color: "white"
+        color: "amber"
     },
     {
         title: "Welcome",
         content: "Restore note checkpoints from previous edits easily.",
-        color: "indigo"
+        color: "violet"
     }
 ];
 
@@ -145,13 +155,24 @@ export default function SubHero({ onExplore }) {
             // Add subtle random-looking rotation (-2.5deg to 2.5deg) for authentic layout
             const rotate = (index % 3 - 1) * 2.5;
 
+            // Compute distance from center (50vw, 50vh) for organic cascading vacuum vortex
+            const dx = position.left - 50;
+            const dy = position.top - 50;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            // Stagger delay from 0.05s (closest) to ~0.9s (outermost) so notes get sucked organically
+            const delay = Number(((dist / 48) * 0.65 + (index % 4) * 0.08).toFixed(2));
+            const spinDeg = (index % 2 === 0 ? 1 : -1) * (540 + (index % 3) * 180);
+
             return {
                 ...note,
                 topVal: position.top,
                 leftVal: position.left,
                 top: `${position.top}vh`,
                 left: `${position.left}vw`,
-                rotate: `${rotate}deg`
+                rotate: `${rotate}deg`,
+                delay,
+                spinDeg
             };
         });
 
@@ -187,17 +208,17 @@ export default function SubHero({ onExplore }) {
 
     /**
      * Sucking vacuum animation handler:
-     * Pulls notes to center, scales them to zero, then triggers navigation.
+     * Pulls notes smoothly in a cascading vortex to the center button before transitioning.
      */
     const handleExploreClick = () => {
         setIsSucking(true);
-        // Delay navigation until notes finish sucking/fading out sequentially
+        // Delay navigation until all staggered notes and the center button vanish into the center
         setTimeout(() => {
             if (onExplore) {
                 onExplore();
             }
             setIsSucking(false);
-        }, 600 + INITIAL_NOTES.length * 50);
+        }, 2200);
     };
 
     return (
@@ -235,53 +256,72 @@ export default function SubHero({ onExplore }) {
                     opacity: 1;
                     transform: scale(1.1) rotate(2.5deg) ;
                 }
-                /* Bobbing animation for the center yellow pin note button */
-                @keyframes eager-bob {
-                    0%, 100% {
-                        transform: translateY(0);
+                /* Yellow Note Box 3D perspective and Flap Tearing Animations */
+                .cardboard-box {
+                    perspective: 1000px;
+                    transform-style: preserve-3d;
+                    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+                }
+                .cardboard-box:hover:not(.is-torn) {
+                    transform: scale(1.08) rotate(1.5deg);
+                }
+                .cardboard-box:active:not(.is-torn) {
+                    transform: scale(0.96);
+                }
+
+                /* Flap Tearing Mechanics */
+                .box-flap-top {
+                    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease;
+                    transform-origin: top center;
+                }
+                .box-flap-bottom {
+                    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease;
+                    transform-origin: bottom center;
+                }
+                .cardboard-box.is-torn .box-flap-top {
+                    transform: rotateX(130deg) translateY(-10px);
+                    opacity: 0.9;
+                }
+                .cardboard-box.is-torn .box-flap-bottom {
+                    transform: rotateX(-130deg) translateY(10px);
+                    opacity: 0.9;
+                }
+
+                /* Tear seam animation */
+                .tear-strip {
+                    transition: all 0.35s ease-out;
+                }
+                .cardboard-box.is-torn .tear-strip {
+                    opacity: 0;
+                    transform: translateY(-50%) scaleX(0);
+                }
+
+                /* Center box swallow & vanish pulse after packing notes */
+                .cardboard-box.is-torn {
+                    animation: box-swallow-pulse 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                }
+
+                @keyframes box-swallow-pulse {
+                    0% {
+                        transform: scale(1) rotate(0deg);
                     }
-                    50% {
-                        transform: translateY(-8px);
+                    8% {
+                        transform: scale(1.1) rotate(-3deg);
                     }
-                }
-                .animate-eager-bob {
-                    animation: eager-bob 3s ease-in-out infinite;
-                }
-                /* Glowing animation for the pin note */
-                @keyframes eager-glow {
-                    0%, 100% {
-                        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.15), 0 0 4px 1px rgba(99, 102, 241, 0.1);
+                    70% {
+                        transform: scale(1.05) rotate(0deg);
+                        opacity: 1;
                     }
-                    50% {
-                        box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.2), 0 0 16px 4px rgba(99, 102, 241, 0.4);
+                    100% {
+                        transform: scale(0) rotate(20deg);
+                        opacity: 0;
+                        pointer-events: none;
                     }
-                }
-                .animate-eager-glow {
-                    animation: eager-glow 3s ease-in-out infinite;
-                }
-                .eager-glow-button {
-                    transition: all 0.5s ease-in-out;
-                }
-                .eager-glow-button .try-now-text,
-                .eager-glow-button .click-to-enter-text {
-                    transition: all 0.3s ease-in-out;
-                }s
-                .click-to-enter-text {
-                    opacity: 0.5;
-                }
-                .eager-glow-button:hover .try-now-text {
-                    color: #d97706; /* Golden amber */
-                    text-shadow: 0 0 20px #ffa200ff, 0 0 20px #fbbf24;
-                }
-                .eager-glow-button:hover .click-to-enter-text {
-                    color: #d97706; /* Golden amber */
-                    opacity: 1;
-                    text-shadow: 0 0 6px #f59e0b;
                 }
             `}</style>
 
-            {/* Background Decorative Floating Sticky Notes */}
-            <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+            {/* Background Decorative Floating Sticky Notes (Layered ABOVE the box during animation) */}
+            <div className={`pointer-events-none absolute inset-0 overflow-hidden ${isSucking ? 'z-30' : 'z-10'}`}>
                 {notes.map((note, idx) => {
                     // noteStyle resolves to:
                     // - vacuum animation coordinates if isSucking is active
@@ -289,14 +329,15 @@ export default function SubHero({ onExplore }) {
                     const noteStyle = isSucking ? {
                         top: note.top,
                         left: note.left,
-                        transform: `translate3d(calc(50vw - ${note.leftVal}vw - 144px), calc(50vh - ${note.topVal}vh - 144px), 0) scale(0) rotate(720deg)`,
+                        transform: `translate3d(calc(50vw - ${note.leftVal}vw - 120px), calc(50vh - ${note.topVal}vh - 120px), 0) scale(0) rotate(${note.spinDeg}deg)`,
                         opacity: 0,
-                        transition: 'transform 1s cubic-bezier(0.25, 1, 0.5, 1), opacity 2s cubic-bezier(0.25, 1, 0.5, 1)',
-                        transitionDelay: `${idx * 0.05}s`
+                        transition: 'transform 1.3s cubic-bezier(0.5, 0, 0.2, 1), opacity 1.1s cubic-bezier(0.5, 0, 0.2, 1)',
+                        transitionDelay: `${note.delay}s`,
+                        willChange: 'transform, opacity'
                     } : {
                         top: note.top,
                         left: note.left,
-                        transform: `translate3d(0, 0, 0) scale(calc(0.5 + var(--subhero-progress, 0) * 0.6)) rotate(${note.rotate || '0deg'})`,
+                        transform: `translate3d(0, 0, 0) scale(calc(0.55 + var(--subhero-progress, 0) * 0.45)) rotate(${note.rotate || '0deg'})`,
                         opacity: 1,
                         transition: 'transform 0.1s ease-out, opacity 0.2s ease-out',
                         willChange: 'transform, opacity' // Hardware-accelerate this layer
@@ -305,7 +346,7 @@ export default function SubHero({ onExplore }) {
                     return (
                         <div
                             key={idx}
-                            className="absolute w-72 z-10 hover:z-50"
+                            className="absolute w-56 sm:w-60 z-30 hover:z-50"
                             style={noteStyle}
                         >
                             <div className={isSucking ? '' : 'animate-float-bob'} style={{ animationDelay: `${idx * -1.5}s` }}>
@@ -325,30 +366,53 @@ export default function SubHero({ onExplore }) {
                 })}
             </div>
 
-            {/* Center Explore Button (Styled as a pinned note card) */}
-            <div className="relative z-10 ">
+            {/* Center Yellow Box Button (Tears open and swallows notes inside) */}
+            <div className="relative z-10">
                 <button
                     type="button"
                     onClick={handleExploreClick}
                     disabled={isSucking}
-                    style={{ backgroundColor: '#fef08a' }}
-                    className={`eager-glow-button relative flex flex-col items-center justify-between w-36 h-36 p-4 animate-eager-glow transition-all duration-500 rotate-[-4deg] hover:rotate-[4deg] hover:scale-110 active:scale-95 cursor-pointer text-yellow-950 font-handwriting ${isSucking ? 'scale-0 opacity-0 pointer-events-none transition-all duration-1000' : ''
-                        }`}
+                    aria-label="Try Now"
+                    className={`cardboard-box group relative flex flex-col items-center justify-between w-36 h-36 sm:w-40 sm:h-40 rounded-sm shadow-xl cursor-pointer select-none border border-amber-300/80 overflow-visible ${
+                        isSucking ? 'is-torn pointer-events-none' : ''
+                    }`}
+                    style={{
+                        backgroundColor: '#fef08a',
+                        boxShadow: '0 15px 30px -5px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)'
+                    }}
                 >
-                    {/* Pin illustration at the top center */}
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2">
-                        <Pin className="h-5 w-5 fill-red-500 text-red-600 drop-shadow-sm rotate-45" />
-                    </div>
+                    {/* Inside box void revealed when torn open */}
+                    <div 
+                        className="absolute inset-1.5 rounded-xs flex items-center justify-center overflow-hidden border border-black"
+                        style={{ backgroundColor: '#000000', boxShadow: 'inset 0 4px 16px rgba(0,0,0,1)' }}
+                    />
 
-                    <div className="flex-1 flex items-center justify-center mt-4">
-                        <span className="try-now-text text-3xl tracking-tight text-amber-950 select-none">
-                            Try Now
+                    {/* Top Flap */}
+                    <div 
+                        className="box-flap-top absolute inset-x-0 top-0 h-1/2 rounded-t-sm origin-top border-b border-amber-300/60 flex items-end justify-center pb-1 z-10"
+                        style={{
+                            backgroundColor: '#fef08a'
+                        }}
+                    >
+                        <span className="text-3xl font-handwriting tracking-tight text-amber-950 font-bold select-none">
+                            Try
                         </span>
                     </div>
 
-                    <div className="click-to-enter-text text-[10px] font-mono tracking-wider uppercase select-none">
-                        click to enter
+                    {/* Bottom Flap */}
+                    <div 
+                        className="box-flap-bottom absolute inset-x-0 bottom-0 h-1/2 rounded-b-sm origin-bottom border-t border-amber-300/60 flex items-start justify-center pt-1 z-10"
+                        style={{
+                            backgroundColor: '#fef08a'
+                        }}
+                    >
+                        <span className="text-3xl font-handwriting tracking-tight text-amber-950 font-bold select-none">
+                            Now
+                        </span>
                     </div>
+
+                    {/* Center Subtle Tear Seam */}
+                    <div className="tear-strip absolute top-1/2 left-0 right-0 -translate-y-1/2 h-0.5 border-t border-dashed border-amber-500/50 z-20 pointer-events-none" />
                 </button>
             </div>
 

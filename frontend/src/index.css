@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Pacifico&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Great+Vibes&family=Pacifico&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 
 /* ==========================================================================
@@ -10,9 +10,10 @@
    2. ROOT DESIGN TOKENS & SYSTEM THEME
    ========================================================================== */
 :root {
-  --font-sans: 'Pacifico', cursive;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Consolas, monospace;
-  --font-handwriting: 'Pacifico', cursive;
+  --font-handwriting: 'Caveat', 'Pacifico', cursive;
+  --font-brand: 'Pacifico', cursive;
 
   color-scheme: light;
 }
@@ -20,6 +21,10 @@
 /* ==========================================================================
    3. GLOBAL BASE RESET & ROOT CONTAINER
    ========================================================================== */
+html {
+  scroll-behavior: smooth;
+}
+
 html,
 body {
   margin: 0;
@@ -31,6 +36,7 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 }
 
 #root {
