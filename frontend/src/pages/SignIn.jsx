@@ -14,7 +14,7 @@ import { signup, signin } from '../services/api';
  * @param {object} props
  * @param {function} props.onBack - Callback triggered when the user clicks the back navigation button.
  */
-export default function SignIn({ onBack }) {
+export default function SignIn({ onBack, onLoginSuccess }) {
     const navigate = useNavigate();
 
     // Mode switcher state: true means Registration, false means Login
@@ -58,6 +58,9 @@ export default function SignIn({ onBack }) {
             } else {
                 const data = await signin(formData.email, formData.password);
                 localStorage.setItem('user', JSON.stringify(data.user));
+                if (onLoginSuccess) {
+                    onLoginSuccess(data.user);
+                }
                 navigate('/workspace');
             }
         } catch (err) {

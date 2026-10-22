@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, ArrowLeft, FileText, Pin, Trash2, Edit3, LogOut, X, Loader2, Sparkles } from 'lucide-react';
+import {
+    Search,
+    Plus,
+    ArrowLeft,
+    FileText,
+    X,
+    Loader2,
+    Sparkles,
+    BarChart3,
+    Filter,
+    CheckCircle2,
+    Clock,
+    Flame
+} from 'lucide-react';
 import StickyNote from '../components/StickyNote';
 import { getNotes, createNote, updateNote, deleteNote } from '../services/api';
 
@@ -20,22 +33,35 @@ const COLORS = [
     { name: 'yellow', bg: '#fef08a', text: '#422006' }
 ];
 
+const CATEGORIES = ['General', 'Work', 'Personal', 'Study', 'Ideas', 'Finance', 'Project', 'Urgent'];
+const PRIORITIES = [
+    { value: 'high', label: 'High Priority', color: 'text-red-600 bg-red-50 border-red-200' },
+    { value: 'medium', label: 'Medium Priority', color: 'text-amber-600 bg-amber-50 border-amber-200' },
+    { value: 'low', label: 'Low Priority', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' }
+];
+
 export default function Workspace({ onBack }) {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [notes, setNotes] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('ALL');
+    const [selectedPriority, setSelectedPriority] = useState('ALL');
+    const [selectedStatus, setSelectedStatus] = useState('ALL');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingNote, setEditingNote] = useState(null); // null means creating
+    const [editingNote, setEditingNote] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
         content: '',
         color: 'amber',
-        tags: ''
+        tags: '',
+        category: 'General',
+        priority: 'medium',
+        status: 'pending'
     });
 
     // Check authentication and load notes
@@ -44,28 +70,32 @@ export default function Workspace({ onBack }) {
         if (!storedUser) {
             navigate('/signin');
         } else {
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
-            fetchUserNotes(parsedUser.id);
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                setUser(parsedUser);
+                const uid = parsedUser.id || parsedUser._id || parsedUser.userId;
+                if (uid) {
+                    fetchUserNotes(uid);
+                } else {
+                    navigate('/signin');
+                }
+            } catch {
+                navigate('/signin');
+            }
         }
     }, [navigate]);
 
-    const fetchUserNotes = async (userId) => {
-        setLoading(true);
+    const fetchUserNotes = async (userId, isSilent = false) => {
+        if (!isSilent) setLoading(true);
         setError(null);
         try {
             const fetchedNotes = await getNotes(userId);
-            setNotes(fetchedNotes);
+            setNotes(Array.isArray(fetchedNotes) ? fetchedNotes : []);
         } catch (err) {
             setError(err.message || 'Failed to retrieve your notes.');
         } finally {
-            setLoading(false);
+            if (!isSilent) setLoading(false);
         }
-    };
-
-    const handleLogout = () => {
-        localStorage.removeItem('user');
-        navigate('/signin');
     };
 
     const openCreateModal = () => {
@@ -74,7 +104,10 @@ export default function Workspace({ onBack }) {
             title: '',
             content: '',
             color: 'amber',
-            tags: ''
+            tags: '',
+            category: 'General',
+            priority: 'medium',
+            status: 'pending'
         });
         setIsModalOpen(true);
     };
@@ -82,17 +115,21 @@ export default function Workspace({ onBack }) {
     const openEditModal = (note) => {
         setEditingNote(note);
         setFormData({
-            title: note.title,
-            content: note.content,
-            color: note.color,
-            tags: note.tags.join(', ')
+            title: note.title || '',
+            content: note.content || '',
+            color: note.color || 'amber',
+            tags: (note.tags || []).join(', '),
+            category: note.category || 'General',
+            priority: note.priority || 'medium',
+            status: note.status || 'pending'
         });
         setIsModalOpen(true);
     };
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
-        if (!user) return;
+        const uid = user?.id || user?._id || user?.userId;
+        if (!uid) return;
 
         setError(null);
         const tagsArray = formData.tags
@@ -105,8 +142,11 @@ export default function Workspace({ onBack }) {
             content: formData.content.trim(),
             color: formData.color,
             tags: tagsArray,
-            isPinned: editingNote ? editingNote.isPinned : false,
-            userId: user.id
+            category: formData.category || 'General',
+            priority: formData.priority || 'medium',
+            status: formData.status || 'pending',
+            isPinned: editingNote ? (editingNote.isPinned ?? false) : false,
+            userId: uid
         };
 
         try {
@@ -115,9 +155,13 @@ export default function Workspace({ onBack }) {
                 setNotes(prev => prev.map(n => n.id === editingNote.id ? updated : n));
             } else {
                 const created = await createNote(notePayload);
-                setNotes(prev => [created, ...prev]);
+                setNotes(prev => [created, ...prev.filter(n => n.id !== created.id)]);
+                // Reset search query if active so newly added note is directly visible
+                if (searchQuery) setSearchQuery('');
             }
             setIsModalOpen(false);
+            // Silently verify with backend
+            fetchUserNotes(uid, true);
         } catch (err) {
             setError(err.message || 'Failed to save the note.');
         }
@@ -126,41 +170,70 @@ export default function Workspace({ onBack }) {
     const handleDelete = async (noteId) => {
         if (!window.confirm("Are you sure you want to delete this note?")) return;
 
+        const uid = user?.id || user?._id || user?.userId;
         setError(null);
+        // Instant Optimistic Removal
+        setNotes(prev => prev.filter(n => n.id !== noteId));
+
         try {
             await deleteNote(noteId);
-            setNotes(prev => prev.filter(n => n.id !== noteId));
+            if (uid) fetchUserNotes(uid, true);
         } catch (err) {
             setError(err.message || 'Failed to delete the note.');
+            if (uid) fetchUserNotes(uid);
         }
     };
 
     const handleTogglePin = async (note) => {
-        setError(null);
+        const uid = user?.id || user?._id || user?.userId;
         const updatedPinned = !note.isPinned;
-        
-        // Optimistic State Update
+
+        // Instant Optimistic Pin Toggle
         setNotes(prev => prev.map(n => n.id === note.id ? { ...n, isPinned: updatedPinned } : n));
 
         try {
-            await updateNote(note.id, { isPinned: updatedPinned });
+            const updated = await updateNote(note.id, { isPinned: updatedPinned });
+            setNotes(prev => prev.map(n => n.id === note.id ? updated : n));
+            if (uid) fetchUserNotes(uid, true);
         } catch (err) {
             setError(err.message || 'Failed to update pin status.');
-            // Revert state on failure
-            fetchUserNotes(user.id);
+            if (uid) fetchUserNotes(uid);
+        }
+    };
+
+    const handleToggleStatus = async (note) => {
+        const uid = user?.id || user?._id || user?.userId;
+        const nextStatus = (note.status || '').toLowerCase() === 'completed' ? 'pending' : 'completed';
+
+        // Instant Optimistic Status Toggle
+        setNotes(prev => prev.map(n => n.id === note.id ? { ...n, status: nextStatus } : n));
+
+        try {
+            const updated = await updateNote(note.id, { status: nextStatus });
+            setNotes(prev => prev.map(n => n.id === note.id ? updated : n));
+            if (uid) fetchUserNotes(uid, true);
+        } catch (err) {
+            setError(err.message || 'Failed to update note status.');
+            if (uid) fetchUserNotes(uid);
         }
     };
 
     // Filter notes
     const filteredNotes = notes.filter(note => {
-        const query = searchQuery.toLowerCase();
-        const matchesTitle = note.title.toLowerCase().includes(query);
-        const matchesContent = note.content.toLowerCase().includes(query);
-        const matchesTags = note.tags.some(tag => tag.toLowerCase().includes(query));
-        return matchesTitle || matchesContent || matchesTags;
+        const query = (searchQuery || '').toLowerCase();
+        const matchesTitle = (note.title || '').toLowerCase().includes(query);
+        const matchesContent = (note.content || '').toLowerCase().includes(query);
+        const matchesTags = (note.tags || []).some(tag => (tag || '').toLowerCase().includes(query));
+        const matchesSearch = !query || matchesTitle || matchesContent || matchesTags;
+
+        const matchesCat = selectedCategory === 'ALL' || (note.category || 'General').toLowerCase() === selectedCategory.toLowerCase();
+        const matchesPrio = selectedPriority === 'ALL' || (note.priority || 'medium').toLowerCase() === selectedPriority.toLowerCase();
+        const matchesStat = selectedStatus === 'ALL' || (note.status || 'pending').toLowerCase() === selectedStatus.toLowerCase();
+
+        return matchesSearch && matchesCat && matchesPrio && matchesStat;
     });
 
-    // Pinned notes bubble to top, secondary sort is by updatedAt descending
+    // Pinned notes bubble to top, keeping newest notes first
     const sortedNotes = [...filteredNotes].sort((a, b) => {
         if (a.isPinned && !b.isPinned) return -1;
         if (!a.isPinned && b.isPinned) return 1;
@@ -172,8 +245,8 @@ export default function Workspace({ onBack }) {
             <div className="mx-auto max-w-6xl px-6">
 
                 {/* Header Navigation & Dashboard Branding */}
-                <div className="mb-8 flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
-                    <div className="flex items-center gap-6">
+                <div className="mb-6 flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
+                    <div className="flex items-center gap-4">
                         {/* Back navigation button */}
                         <button
                             type="button"
@@ -183,7 +256,7 @@ export default function Workspace({ onBack }) {
                         >
                             <ArrowLeft className="h-5 w-5 text-zinc-600 transition group-hover:-translate-x-0.5" />
                         </button>
-                        
+
                         {/* Title text */}
                         <div>
                             <div className="flex items-center gap-2">
@@ -199,29 +272,89 @@ export default function Workspace({ onBack }) {
                     </div>
 
                     {/* Header Action Controls */}
-                    <div className="flex items-center gap-3">
-                        {/* Search Input Bar */}
-                        <div className="relative flex-1 sm:w-64">
-                            <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                    <div className="flex items-center flex-wrap gap-2.5">
+                        {/* Search Input Bar (increased size by 20%) */}
+                        <div className="relative flex-1 sm:w-72 sm:min-w-[270px]">
+                            <Search className="absolute top-1/2 left-3.5 h-4.5 w-4.5 -translate-y-1/2 text-zinc-400" />
                             <input
                                 type="text"
                                 placeholder="Search title, content, tags..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full rounded-xl border border-zinc-200 bg-white py-2 pl-10 pr-4 text-sm text-zinc-800 placeholder-zinc-400 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
+                                className="w-full h-10 rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-4 text-sm text-zinc-800 placeholder-zinc-400 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 shadow-xs"
                             />
                         </div>
 
-                        {/* Logout Button */}
+                        {/* Analytics Dashboard CTA Button */}
                         <button
                             type="button"
-                            onClick={handleLogout}
-                            className="flex h-10 items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-600 shadow-sm transition hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 cursor-pointer active:scale-95"
-                            title="Log Out"
+                            onClick={() => navigate('/dashboard')}
+                            className="flex h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 px-4 text-sm font-semibold text-white shadow-md shadow-indigo-600/20 transition hover:from-indigo-500 hover:to-indigo-600 cursor-pointer active:scale-95"
+                            title="Open Analytics Dashboard"
                         >
-                            <LogOut className="h-4 w-4" />
-                            <span className="hidden sm:inline">Log Out</span>
+                            <BarChart3 className="h-4 w-4" />
+                            <span>Analytics Dashboard</span>
                         </button>
+                    </div>
+                </div>
+
+                {/* Quick Filters Toolbar */}
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200/80 bg-white p-3 shadow-xs">
+                    <div className="flex items-center gap-2 overflow-x-auto text-xs py-1">
+                        <span className="flex items-center gap-1 font-semibold text-zinc-500 pr-1 shrink-0">
+                            <Filter className="h-3.5 w-3.5" /> Filter:
+                        </span>
+
+                        {/* Status Pills */}
+                        <div className="flex items-center rounded-lg bg-zinc-100 p-0.5 shrink-0">
+                            {['ALL', 'pending', 'completed'].map((st) => (
+                                <button
+                                    key={st}
+                                    type="button"
+                                    onClick={() => setSelectedStatus(st)}
+                                    className={`px-2.5 py-1 rounded-md capitalize font-medium transition cursor-pointer ${
+                                        selectedStatus === st
+                                            ? 'bg-white text-zinc-900 shadow-xs'
+                                            : 'text-zinc-600 hover:text-zinc-900'
+                                    }`}
+                                >
+                                    {st === 'ALL' ? 'All Status' : st}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Priority Pills */}
+                        <div className="flex items-center rounded-lg bg-zinc-100 p-0.5 shrink-0">
+                            {['ALL', 'high', 'medium', 'low'].map((pr) => (
+                                <button
+                                    key={pr}
+                                    type="button"
+                                    onClick={() => setSelectedPriority(pr)}
+                                    className={`px-2.5 py-1 rounded-md capitalize font-medium transition cursor-pointer ${
+                                        selectedPriority === pr
+                                            ? 'bg-white text-zinc-900 shadow-xs'
+                                            : 'text-zinc-600 hover:text-zinc-900'
+                                    }`}
+                                >
+                                    {pr === 'ALL' ? 'All Priorities' : pr}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Category Filter Select */}
+                    <div className="flex items-center gap-2 text-xs">
+                        <label className="text-zinc-500 font-medium">Category:</label>
+                        <select
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs text-zinc-800 outline-none focus:border-indigo-500"
+                        >
+                            <option value="ALL">All Categories</option>
+                            {CATEGORIES.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 
@@ -243,7 +376,7 @@ export default function Workspace({ onBack }) {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-                        
+
                         {/* Trigger Note Creation Button */}
                         <button
                             type="button"
@@ -267,38 +400,45 @@ export default function Workspace({ onBack }) {
                                 content={note.content}
                                 color={note.color}
                                 tags={note.tags}
+                                category={note.category}
+                                priority={note.priority}
+                                status={note.status}
                                 isPinned={note.isPinned}
                                 updatedAt={note.updatedAt}
                                 mode="workspace"
                                 onEdit={() => openEditModal(note)}
                                 onDelete={() => handleDelete(note.id)}
                                 onPin={() => handleTogglePin(note)}
+                                onToggleStatus={() => handleToggleStatus(note)}
                             />
                         ))}
 
                     </div>
                 )}
 
-                {/* Empty State Banner (if no notes match search query) */}
-                {!loading && sortedNotes.length === 0 && searchQuery && (
+                {/* Empty State Banner */}
+                {!loading && sortedNotes.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-20 text-center text-zinc-400">
                         <FileText className="h-12 w-12 opacity-50 mb-3" />
-                        <h3 className="text-base font-semibold text-zinc-700">No matching notes</h3>
-                        <p className="text-xs mt-1">Try searching another keyword or create a new note.</p>
+                        <h3 className="text-base font-semibold text-zinc-700">No notes found</h3>
+                        <p className="text-xs mt-1">Try adjusting your filters or click "+ Add Sticky Note" to create one.</p>
                     </div>
                 )}
             </div>
 
             {/* Note Creation / Editing Modal Overlay */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/30 p-6 backdrop-blur-sm">
-                    <div className="w-full max-w-[480px] scale-100 transform rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-2xl transition-all">
-                        
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 p-4 sm:p-6 backdrop-blur-sm overflow-y-auto">
+                    <div className="w-full max-w-[520px] scale-100 transform rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-2xl transition-all my-8">
+
                         {/* Modal Header */}
                         <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-zinc-950">
-                                {editingNote ? 'Edit Sticky Note' : 'Create Sticky Note'}
-                            </h2>
+                            <div>
+                                <h2 className="text-lg font-semibold text-zinc-950">
+                                    {editingNote ? 'Edit Sticky Note' : 'Create Sticky Note'}
+                                </h2>
+                                <p className="text-xs text-zinc-500">Set title, body, category, priority, and status.</p>
+                            </div>
                             <button
                                 onClick={() => setIsModalOpen(false)}
                                 className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition cursor-pointer"
@@ -309,7 +449,7 @@ export default function Workspace({ onBack }) {
 
                         {/* Modal Form */}
                         <form onSubmit={handleFormSubmit} className="space-y-4">
-                            
+
                             {/* Title Field */}
                             <div>
                                 <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">
@@ -317,12 +457,81 @@ export default function Workspace({ onBack }) {
                                 </label>
                                 <input
                                     type="text"
-                                    placeholder="Quick thought..."
+                                    placeholder="e.g., MongoDB Aggregation Pipeline Study"
                                     value={formData.title}
                                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                                     className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-800 placeholder-zinc-400 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
                                     required
                                 />
+                            </div>
+
+                            {/* Category & Priority Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {/* Category Dropdown */}
+                                <div>
+                                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">
+                                        Category
+                                    </label>
+                                    <select
+                                        value={formData.category}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                                        className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-800 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
+                                    >
+                                        {CATEGORIES.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Priority Dropdown */}
+                                <div>
+                                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">
+                                        Priority
+                                    </label>
+                                    <select
+                                        value={formData.priority}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value }))}
+                                        className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-800 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
+                                    >
+                                        <option value="high">🔴 High Priority</option>
+                                        <option value="medium">🟡 Medium Priority</option>
+                                        <option value="low">🟢 Low Priority</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Status Option */}
+                            <div>
+                                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">
+                                    Completion Status
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData(prev => ({ ...prev, status: 'pending' }))}
+                                        className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                                            formData.status === 'pending'
+                                                ? 'bg-amber-50 text-amber-900 border-amber-300 ring-2 ring-amber-300/30'
+                                                : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50'
+                                        }`}
+                                    >
+                                        <Clock className="h-3.5 w-3.5 text-amber-600" />
+                                        <span>Pending</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData(prev => ({ ...prev, status: 'completed' }))}
+                                        className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                                            formData.status === 'completed'
+                                                ? 'bg-emerald-50 text-emerald-900 border-emerald-300 ring-2 ring-emerald-300/30'
+                                                : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50'
+                                        }`}
+                                    >
+                                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                                        <span>Completed</span>
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Content Field */}
@@ -331,7 +540,7 @@ export default function Workspace({ onBack }) {
                                     Note Body Content
                                 </label>
                                 <textarea
-                                    rows={4}
+                                    rows={3}
                                     placeholder="Start writing ideas here..."
                                     value={formData.content}
                                     onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
@@ -347,7 +556,7 @@ export default function Workspace({ onBack }) {
                                 </label>
                                 <input
                                     type="text"
-                                    placeholder="Ideas, Task, Design"
+                                    placeholder="Database, Aggregation, Viva"
                                     value={formData.tags}
                                     onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
                                     className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-800 placeholder-zinc-400 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
@@ -366,15 +575,15 @@ export default function Workspace({ onBack }) {
                                             type="button"
                                             onClick={() => setFormData(prev => ({ ...prev, color: c.name }))}
                                             className={`h-7 w-7 rounded-full border transition cursor-pointer relative ${
-                                                formData.color === c.name 
-                                                    ? 'border-zinc-950 scale-110 shadow-sm ring-2 ring-zinc-950/20' 
+                                                formData.color === c.name
+                                                    ? 'border-zinc-950 scale-110 shadow-sm ring-2 ring-zinc-950/20'
                                                     : 'border-zinc-200 hover:scale-105'
                                             }`}
                                             style={{ backgroundColor: c.bg }}
                                             title={c.name}
                                         >
                                             {formData.color === c.name && (
-                                                <div 
+                                                <div
                                                     className="absolute inset-0 flex items-center justify-center text-[10px] font-bold"
                                                     style={{ color: c.text }}
                                                 >

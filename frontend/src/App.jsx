@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import SubHero from './components/SubHero';
 import Workspace from './pages/Workspace';
+import Dashboard from './pages/Dashboard';
 import SignIn from './pages/SignIn';
 
 /**
@@ -17,7 +18,16 @@ import SignIn from './pages/SignIn';
  * @param {object} props.landingStyle - Inline CSS colors styles containing scroll-interpolated variables.
  * @param {function} props.navigate - React Router navigation helper function.
  */
-function LandingPage({ isSignIn, landingStyle, navigate }) {
+function LandingPage({ isSignIn, landingStyle, navigate, user, onLogout, onLoginSuccess }) {
+    const handleTryNow = () => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            navigate('/workspace');
+        } else {
+            navigate('/signin');
+        }
+    };
+
     return (
         <div className="min-h-screen overflow-x-hidden relative">
             {/* Landing Page Slider Wrapper (slides to the left when showing Sign In) */}
@@ -28,10 +38,15 @@ function LandingPage({ isSignIn, landingStyle, navigate }) {
                 }}
                 className="min-h-screen transition-transform duration-700 ease-in-out relative"
             >
-                <Navbar onGetStarted={() => navigate('/signin')} />
+                <Navbar
+                    user={user}
+                    onGetStarted={handleTryNow}
+                    onLogout={onLogout}
+                    onOpenWorkspace={() => navigate('/workspace')}
+                />
                 <main>
                     <Hero />
-                    <SubHero onExplore={() => navigate('/workspace')} />
+                    <SubHero onExplore={handleTryNow} />
                 </main>
             </div>
 
@@ -43,7 +58,10 @@ function LandingPage({ isSignIn, landingStyle, navigate }) {
                     visibility: isSignIn ? 'visible' : 'hidden'
                 }}
             >
-                <SignIn onBack={() => navigate('/')} />
+                <SignIn
+                    onBack={() => navigate('/')}
+                    onLoginSuccess={onLoginSuccess}
+                />
             </div>
         </div>
     );
@@ -52,12 +70,48 @@ function LandingPage({ isSignIn, landingStyle, navigate }) {
 /**
  * App Root Component
  * 
- * Configures routing, document layouts, and high-performance scroll-driven themes.
+ * Configures routing, document layouts, session management, and high-performance scroll-driven themes.
  * Calculates dynamic RGB color styles as you scroll down the page.
  */
 export default function App() {
     const location = useLocation();
     const navigate = useNavigate();
+
+    // Persistent user state synchronized with localStorage
+    const [user, setUser] = useState(() => {
+        try {
+            const stored = localStorage.getItem('user');
+            return stored ? JSON.parse(stored) : null;
+        } catch {
+            return null;
+        }
+    });
+
+    // Keep user state in sync with localStorage across storage events and navigation
+    useEffect(() => {
+        const syncUser = () => {
+            try {
+                const stored = localStorage.getItem('user');
+                setUser(stored ? JSON.parse(stored) : null);
+            } catch {
+                setUser(null);
+            }
+        };
+
+        syncUser();
+        window.addEventListener('storage', syncUser);
+        return () => window.removeEventListener('storage', syncUser);
+    }, [location.pathname]);
+
+    const handleLoginSuccess = (loggedInUser) => {
+        setUser(loggedInUser);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('user');
+        setUser(null);
+        navigate('/');
+    };
 
     // appRef allows directly writing CSS Custom Properties to the DOM,
     // avoiding React re-renders on scroll which would otherwise lag note layouts.
@@ -71,7 +125,7 @@ export default function App() {
         if (isLandingRoute) {
             document.body.style.overflow = location.pathname === '/' ? '' : 'hidden';
         } else {
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = '';
         }
         return () => {
             document.body.style.overflow = '';
@@ -145,21 +199,42 @@ export default function App() {
                 <Route
                     path="/"
                     element={
-                        <LandingPage isSignIn={false} landingStyle={landingStyle} navigate={navigate} />
+                        <LandingPage
+                            isSignIn={false}
+                            landingStyle={landingStyle}
+                            navigate={navigate}
+                            user={user}
+                            onLogout={handleLogout}
+                            onLoginSuccess={handleLoginSuccess}
+                        />
                     }
                 />
                 {/* Landing page showing Sign In modal route */}
                 <Route
                     path="/signin"
                     element={
-                        <LandingPage isSignIn={true} landingStyle={landingStyle} navigate={navigate} />
+                        <LandingPage
+                            isSignIn={true}
+                            landingStyle={landingStyle}
+                            navigate={navigate}
+                            user={user}
+                            onLogout={handleLogout}
+                            onLoginSuccess={handleLoginSuccess}
+                        />
                     }
                 />
-                {/* User sticky notes workspace dashboard route */}
+                {/* User sticky notes workspace route */}
                 <Route
                     path="/workspace"
                     element={
                         <Workspace onBack={() => navigate('/')} />
+                    }
+                />
+                {/* User analytics & MongoDB aggregation dashboard route */}
+                <Route
+                    path="/dashboard"
+                    element={
+                        <Dashboard onBack={() => navigate('/workspace')} />
                     }
                 />
                 {/* Wildcard fallback redirection */}

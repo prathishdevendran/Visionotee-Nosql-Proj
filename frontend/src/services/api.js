@@ -63,3 +63,25 @@ export async function deleteNote(noteId) {
     });
     return handleResponse(response);
 }
+
+/**
+ * Fetch consolidated aggregation metrics calculated directly via PyMongo aggregation pipelines.
+ */
+export async function getDashboardAnalytics(userId) {
+    const response = await fetch(`${BASE_URL}/analytics/dashboard?userId=${encodeURIComponent(userId)}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+    });
+    return handleResponse(response);
+}
+
+/**
+ * Fetch MongoDB aggregation pipelines, stage explanations, and live outputs for viva defense.
+ */
+export async function getVivaQueries(userId) {
+    const response = await fetch(`${BASE_URL}/analytics/viva-queries?userId=${encodeURIComponent(userId)}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+    });
+    return handleResponse(response);
+}
