@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     # CORS Configuration
     ALLOWED_ORIGINS: Union[str, List[str]] = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
 
+    # Local Ollama AI Settings (100% Private Offline Inference)
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "llama3.2:latest"
+
     model_config = SettingsConfigDict(
         env_file=str(ENV_FILE) if ENV_FILE.exists() else ".env",
         env_file_encoding="utf-8",

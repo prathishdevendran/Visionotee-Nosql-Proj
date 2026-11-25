@@ -223,18 +223,18 @@ export default function App() {
                         />
                     }
                 />
-                {/* User sticky notes workspace route */}
+                {/* User sticky notes workspace & unified analytics route */}
                 <Route
                     path="/workspace"
                     element={
                         <Workspace onBack={() => navigate('/')} />
                     }
                 />
-                {/* User analytics & MongoDB aggregation dashboard route */}
+                {/* Unified single page: dashboard redirects to workspace */}
                 <Route
                     path="/dashboard"
                     element={
-                        <Dashboard onBack={() => navigate('/workspace')} />
+                        <Navigate to="/workspace" replace />
                     }
                 />
                 {/* Wildcard fallback redirection */}

@@ -85,3 +85,37 @@ export async function getVivaQueries(userId) {
     });
     return handleResponse(response);
 }
+
+/**
+ * Check local Ollama AI status and model reachability.
+ */
+export async function getAIStatus() {
+    const response = await fetch(`${BASE_URL}/ai/status`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+    });
+    return handleResponse(response);
+}
+
+/**
+ * Chat with personal notes using local Ollama RAG (100% private & offline).
+ */
+export async function chatWithAI(userId, message, conversationHistory = []) {
+    const response = await fetch(`${BASE_URL}/ai/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, message, conversationHistory }),
+    });
+    return handleResponse(response);
+}
+
+/**
+ * Execute vector/relevance semantic search over user's notes.
+ */
+export async function semanticSearchAI(userId, query) {
+    const response = await fetch(`${BASE_URL}/ai/search?userId=${encodeURIComponent(userId)}&q=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+    });
+    return handleResponse(response);
+}

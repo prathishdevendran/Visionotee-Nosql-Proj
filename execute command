@@ -1,0 +1,9 @@
+cd backend
+$env:PYTHONPATH="."
+& "C:\Users\MADHUSHALNE\miniconda3\envs\tf-cuda\python.exe" -m uvicorn app.main:app --reload --port 8000
+
+cd frontend
+npm run dev
+
+
+ollama run llama3.2:latest

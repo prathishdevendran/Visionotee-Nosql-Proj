@@ -16,9 +16,10 @@ class NoteBase(BaseModel):
     color: str = "amber"
     tags: List[str] = []
     isPinned: bool = False
-    category: str = "General"
-    priority: str = "medium"  # "high", "medium", "low"
-    status: str = "pending"   # "pending", "completed"
+    isTask: bool = False      # True if marked as a task/to-do item
+    category: Optional[str] = "General"
+    priority: Optional[str] = "medium"
+    status: Optional[str] = "pending"   # "pending", "completed" (relevant when isTask=True)
 
 
 class NoteCreate(NoteBase):
@@ -33,6 +34,7 @@ class NoteUpdate(BaseModel):
     color: Optional[str] = None
     tags: Optional[List[str]] = None
     isPinned: Optional[bool] = None
+    isTask: Optional[bool] = None
     category: Optional[str] = None
     priority: Optional[str] = None
     status: Optional[str] = None

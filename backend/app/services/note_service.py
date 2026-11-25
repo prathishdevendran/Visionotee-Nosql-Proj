@@ -72,6 +72,7 @@ class NoteService:
             "color": note.get("color", "amber"),
             "tags": note.get("tags", []) or [],
             "isPinned": note.get("isPinned", False) or False,
+            "isTask": note.get("isTask", False) or False,
             "category": note.get("category", "General") or "General",
             "priority": (note.get("priority") or "medium").lower(),
             "status": (note.get("status") or "pending").lower(),
@@ -87,6 +88,7 @@ class NoteService:
         note_dict["updatedAt"] = datetime.now().strftime("%b %d, %Y, %I:%M %p")
 
         # Sanitize defaults
+        note_dict["isTask"] = bool(note_dict.get("isTask", False))
         if not note_dict.get("category"):
             note_dict["category"] = "General"
         if not note_dict.get("priority"):

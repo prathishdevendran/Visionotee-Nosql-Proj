@@ -4,6 +4,18 @@ MongoDB Database Connection & Lifecycle Manager.
 Manages MongoClient instances and exports collection handles.
 """
 
+import dns.resolver
+
+# Ensure dnspython has reliable DNS resolution on Windows networks
+try:
+    _resolver = dns.resolver.get_default_resolver()
+    _reliable_dns = ['8.8.8.8', '1.1.1.1', '8.8.4.4']
+    _resolver.nameservers = [ns for ns in _resolver.nameservers if not str(ns).startswith('10.')] + [
+        ns for ns in _reliable_dns if ns not in _resolver.nameservers
+    ]
+except Exception:
+    pass
+
 from pymongo import MongoClient
 from pymongo.database import Database
 from pymongo.collection import Collection
